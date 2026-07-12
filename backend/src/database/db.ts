@@ -4,16 +4,29 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "applyflow",
-  port: 5432,
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+
+  // Required for Render PostgreSQL
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : false,
 });
 
 export async function connectDB() {
-  const client = await pool.connect();
+  try {
+    const client = await pool.connect();
 
-  console.log("✅ PostgreSQL Connected");
+    console.log("✅ PostgreSQL Connected");
 
-  client.release();
+    client.release();
+  } catch (error) {
+    console.error("❌ Database Connection Failed");
+    console.error(error);
+    process.exit(1);
+  }
 }
