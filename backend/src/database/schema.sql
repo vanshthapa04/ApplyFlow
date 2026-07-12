@@ -1,13 +1,17 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+----------------------------------------------------
+-- DROP TABLES
+----------------------------------------------------
+
 DROP TABLE IF EXISTS refresh_tokens CASCADE;
-DROP TABLE IF EXISTS notes CASCADE;
 DROP TABLE IF EXISTS interviews CASCADE;
 DROP TABLE IF EXISTS applications CASCADE;
-DROP TABLE IF EXISTS cover_letters CASCADE;
-DROP TABLE IF EXISTS resumes CASCADE;
 DROP TABLE IF EXISTS companies CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS notes CASCADE;
+DROP TABLE IF EXISTS cover_letters CASCADE;
+DROP TABLE IF EXISTS resumes CASCADE;
 
 ----------------------------------------------------
 -- USERS
@@ -40,49 +44,13 @@ CREATE TABLE companies (
 
     website VARCHAR(255),
 
+    industry VARCHAR(100),
+
     location VARCHAR(255),
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (user_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE
-);
-
-----------------------------------------------------
--- RESUMES
-----------------------------------------------------
-
-CREATE TABLE resumes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    user_id UUID NOT NULL,
-
-    title VARCHAR(100) NOT NULL,
-
-    file_url TEXT NOT NULL,
-
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (user_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE
-);
-
-----------------------------------------------------
--- COVER LETTERS
-----------------------------------------------------
-
-CREATE TABLE cover_letters (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    user_id UUID NOT NULL,
-
-    title VARCHAR(100) NOT NULL,
-
-    content TEXT NOT NULL,
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (user_id)
         REFERENCES users(id)
@@ -100,23 +68,19 @@ CREATE TABLE applications (
 
     company_id UUID NOT NULL,
 
-    resume_id UUID,
+    job_title VARCHAR(255) NOT NULL,
 
-    cover_letter_id UUID,
+    job_type VARCHAR(100),
 
-    role VARCHAR(255) NOT NULL,
+    location VARCHAR(255),
+
+    salary NUMERIC(12,2),
+
+    application_date DATE NOT NULL DEFAULT CURRENT_DATE,
 
     status VARCHAR(50) NOT NULL DEFAULT 'Applied',
 
-    priority VARCHAR(20) DEFAULT 'Medium',
-
-    salary VARCHAR(100),
-
-    applied_date DATE,
-
     job_url TEXT,
-
-    notes TEXT,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -128,15 +92,7 @@ CREATE TABLE applications (
 
     FOREIGN KEY (company_id)
         REFERENCES companies(id)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (resume_id)
-        REFERENCES resumes(id)
-        ON DELETE SET NULL,
-
-    FOREIGN KEY (cover_letter_id)
-        REFERENCES cover_letters(id)
-        ON DELETE SET NULL
+        ON DELETE CASCADE
 );
 
 ----------------------------------------------------
@@ -146,41 +102,31 @@ CREATE TABLE applications (
 CREATE TABLE interviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
+    user_id UUID NOT NULL,
+
     application_id UUID NOT NULL,
 
-    interview_date DATE NOT NULL,
+    round VARCHAR(100) NOT NULL,
 
-    interview_time TIME NOT NULL,
+    interviewer_name VARCHAR(255),
 
-    interview_type VARCHAR(50),
+    interview_date TIMESTAMP NOT NULL,
+
+    mode VARCHAR(20) NOT NULL,
 
     meeting_link TEXT,
 
-    interviewer VARCHAR(255),
+    location VARCHAR(255),
 
-    round VARCHAR(100),
-
-    notes TEXT,
+    status VARCHAR(50) NOT NULL DEFAULT 'Scheduled',
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (application_id)
-        REFERENCES applications(id)
-        ON DELETE CASCADE
-);
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-----------------------------------------------------
--- NOTES
-----------------------------------------------------
-
-CREATE TABLE notes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    application_id UUID NOT NULL,
-
-    content TEXT NOT NULL,
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
 
     FOREIGN KEY (application_id)
         REFERENCES applications(id)

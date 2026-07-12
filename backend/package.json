@@ -7,8 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "seed": "tsx src/database/seeds/seed.ts"
   },
   "keywords": [],
   "author": "",
@@ -39,6 +38,6 @@
     "@types/pg": "^8.20.0",
     "nodemon": "^3.1.14",
     "tsx": "^4.23.0",
-    "typescript": "^7.0.2"
+    "typescript": "^5.9.2"
   }
 }
