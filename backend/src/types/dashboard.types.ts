@@ -19,17 +19,17 @@ export interface DashboardOverview {
     count: number;
   }
   
-  export interface TopCompany {
-    company: string;
-    applications: number;
-  }
-  
   export interface RecentApplication {
     id: string;
     company_name: string;
     job_title: string;
     status: string;
-    application_date: Date;
+    application_date: string;
+  }
+  
+  export interface TopCompany {
+    company: string;
+    applications: number;
   }
   
   export interface DashboardResponse {

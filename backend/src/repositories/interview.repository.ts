@@ -1,21 +1,17 @@
 import { pool } from "../database/db";
+
 import {
-  Interview,
   CreateInterviewDto,
   UpdateInterviewDto,
 } from "../types/interview.types";
 
 class InterviewRepository {
-  /**
-   * Create Interview
-   */
   async create(
     userId: string,
-    interview: CreateInterviewDto
-  ): Promise<Interview> {
+    data: CreateInterviewDto
+  ) {
     const query = `
-      INSERT INTO interviews
-      (
+      INSERT INTO interviews (
         user_id,
         application_id,
         round,
@@ -26,23 +22,23 @@ class InterviewRepository {
         location,
         status
       )
-      VALUES
-      (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9
-      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
       RETURNING *;
     `;
 
     const values = [
       userId,
-      interview.applicationId,
-      interview.round,
-      interview.interviewerName || null,
-      interview.interviewDate,
-      interview.mode,
-      interview.meetingLink || null,
-      interview.location || null,
-      interview.status || "Scheduled",
+      data.applicationId,
+      data.round,
+      data.interviewerName || null,
+
+      // Keep the datetime exactly as received from frontend
+      data.interviewDate,
+
+      data.mode,
+      data.meetingLink || null,
+      data.location || null,
+      data.status || "Scheduled",
     ];
 
     const { rows } = await pool.query(query, values);
@@ -50,22 +46,19 @@ class InterviewRepository {
     return rows[0];
   }
 
-  /**
-   * Get All Interviews
-   */
-  async findAll(userId: string): Promise<Interview[]> {
+  async findAll(userId: string) {
     const query = `
       SELECT
-        interviews.*,
-        applications.job_title AS application_job_title,
-        companies.name AS company_name
-      FROM interviews
-      INNER JOIN applications
-        ON interviews.application_id = applications.id
-      INNER JOIN companies
-        ON applications.company_id = companies.id
-      WHERE interviews.user_id = $1
-      ORDER BY interviews.interview_date ASC;
+        i.*,
+        a.job_title,
+        c.name AS company_name
+      FROM interviews i
+      JOIN applications a
+        ON i.application_id = a.id
+      JOIN companies c
+        ON a.company_id = c.id
+      WHERE i.user_id = $1
+      ORDER BY i.interview_date ASC;
     `;
 
     const { rows } = await pool.query(query, [userId]);
@@ -73,78 +66,114 @@ class InterviewRepository {
     return rows;
   }
 
-  /**
-   * Get Interview By ID
-   */
-  async findById(id: string): Promise<Interview | null> {
+  async findById(
+    userId: string,
+    interviewId: string
+  ) {
     const query = `
       SELECT
-        interviews.*,
-        applications.job_title AS application_job_title,
-        companies.name AS company_name
-      FROM interviews
-      INNER JOIN applications
-        ON interviews.application_id = applications.id
-      INNER JOIN companies
-        ON applications.company_id = companies.id
-      WHERE interviews.id = $1;
+        i.*,
+        a.job_title,
+        c.name AS company_name
+      FROM interviews i
+      JOIN applications a
+        ON i.application_id = a.id
+      JOIN companies c
+        ON a.company_id = c.id
+      WHERE i.id = $1
+      AND i.user_id = $2;
     `;
 
-    const { rows } = await pool.query(query, [id]);
+    const { rows } = await pool.query(query, [
+      interviewId,
+      userId,
+    ]);
 
     return rows[0] || null;
   }
 
-  /**
-   * Update Interview
-   */
   async update(
+    userId: string,
     interviewId: string,
-    interview: UpdateInterviewDto
-  ): Promise<Interview> {
+    data: UpdateInterviewDto
+  ) {
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    let index = 1;
+
+    const mapping: Record<string, string> = {
+      applicationId: "application_id",
+      round: "round",
+      interviewerName: "interviewer_name",
+      interviewDate: "interview_date",
+      mode: "mode",
+      meetingLink: "meeting_link",
+      location: "location",
+      status: "status",
+    };
+
+    for (const [key, value] of Object.entries(data)) {
+      if (
+        value !== undefined &&
+        mapping[key]
+      ) {
+        fields.push(
+          `${mapping[key]} = $${index}`
+        );
+
+        values.push(value);
+        index++;
+      }
+    }
+
+    if (!fields.length) {
+      return this.findById(
+        userId,
+        interviewId
+      );
+    }
+
+    fields.push(
+      `updated_at = CURRENT_TIMESTAMP`
+    );
+
+    values.push(interviewId);
+    values.push(userId);
+
     const query = `
       UPDATE interviews
-      SET
-        application_id = COALESCE($1, application_id),
-        round = COALESCE($2, round),
-        interviewer_name = COALESCE($3, interviewer_name),
-        interview_date = COALESCE($4, interview_date),
-        mode = COALESCE($5, mode),
-        meeting_link = COALESCE($6, meeting_link),
-        location = COALESCE($7, location),
-        status = COALESCE($8, status),
-        updated_at = NOW()
-      WHERE id = $9
+      SET ${fields.join(", ")}
+      WHERE id = $${index}
+      AND user_id = $${index + 1}
       RETURNING *;
     `;
 
-    const values = [
-      interview.applicationId ?? null,
-      interview.round ?? null,
-      interview.interviewerName ?? null,
-      interview.interviewDate ?? null,
-      interview.mode ?? null,
-      interview.meetingLink ?? null,
-      interview.location ?? null,
-      interview.status ?? null,
-      interviewId,
-    ];
+    const { rows } = await pool.query(
+      query,
+      values
+    );
 
-    const { rows } = await pool.query(query, values);
-
-    return rows[0];
+    return rows[0] || null;
   }
 
-  /**
-   * Delete Interview
-   */
-  async delete(interviewId: string): Promise<void> {
+  async delete(
+    userId: string,
+    interviewId: string
+  ) {
     const query = `
       DELETE FROM interviews
-      WHERE id = $1;
+      WHERE id = $1
+      AND user_id = $2
+      RETURNING id;
     `;
 
-    await pool.query(query, [interviewId]);
+    const { rows } = await pool.query(
+      query,
+      [interviewId, userId]
+    );
+
+    return rows[0] || null;
   }
 }
 

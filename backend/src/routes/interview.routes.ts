@@ -1,37 +1,38 @@
 import { Router } from "express";
+
 import interviewController from "../controllers/interview.controller";
+
 import { authenticate } from "../middleware/auth.middleware";
 
 const router = Router();
 
-/**
- * All Interview routes require authentication
- */
+console.log("✅ Interview Routes Loaded");
+
 router.use(authenticate);
 
-/**
- * Create Interview
- */
-router.post("/", interviewController.createInterview);
+router.post(
+  "/",
+  interviewController.create
+);
 
-/**
- * Get All Interviews
- */
-router.get("/", interviewController.getInterviews);
+router.get(
+  "/",
+  interviewController.getAll
+);
 
-/**
- * Get Interview By ID
- */
-router.get("/:id", interviewController.getInterviewById);
+router.get(
+  "/:id",
+  interviewController.getById
+);
 
-/**
- * Update Interview
- */
-router.put("/:id", interviewController.updateInterview);
+router.put(
+  "/:id",
+  interviewController.update
+);
 
-/**
- * Delete Interview
- */
-router.delete("/:id", interviewController.deleteInterview);
+router.delete(
+  "/:id",
+  interviewController.delete
+);
 
 export default router;

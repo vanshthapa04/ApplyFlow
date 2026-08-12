@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { useForm } from "react-hook-form";
+import authService from "@/services/auth.service";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +19,7 @@ type RegisterForm = { name: string; email: string; password: string; confirm: st
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const auth = useAuth();
   const { register, handleSubmit, watch, formState: { errors } } = useForm<RegisterForm>();
   const password = watch("password");
 
@@ -35,7 +38,24 @@ function RegisterPage() {
 
           <Card className="mt-6 rounded-2xl border-border/70 shadow-sm">
             <CardContent className="p-6">
-              <form className="space-y-4" onSubmit={handleSubmit(() => navigate({ to: "/" }))}>
+              <form className="space-y-4" onSubmit={handleSubmit(async (data) => {
+  try {
+    const response = await authService.register({
+      fullName: data.name,
+      email: data.email,
+      password: data.password,
+    });
+
+    await auth.login(response.data.data.token);
+
+    navigate({
+      to: "/",
+    });
+  } catch (error) {
+    console.error(error);
+    alert("Registration failed");
+  }
+})}>
                 <div className="space-y-2">
                   <Label htmlFor="name">Full name</Label>
                   <Input id="name" placeholder="Arjun Sharma" className="h-11 rounded-xl"

@@ -1,141 +1,222 @@
-import { Request, Response, NextFunction } from "express";
+import {
+  Request,
+  Response,
+  NextFunction,
+} from "express";
+
 import interviewService from "../services/interview.service";
+
 import {
   createInterviewSchema,
   updateInterviewSchema,
 } from "../validators/interview.validator";
 
 class InterviewController {
+
   /**
    * Create Interview
    */
-  async createInterview(
+  async create(
     req: Request,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const data = createInterviewSchema.parse(req.body);
+      const userId = (req as any).user.userId;
 
-      const userId = req.user!.userId;
+      console.log(
+        "CREATE INTERVIEW BODY:",
+        req.body
+      );
+
+      const data =
+        createInterviewSchema.parse(req.body);
+
+      console.log(
+        "VALIDATED INTERVIEW DATA:",
+        data
+      );
 
       const interview =
-        await interviewService.createInterview(
+        await interviewService.create(
           userId,
-          data
+          data as any
         );
 
       return res.status(201).json({
         success: true,
-        message: "Interview created successfully",
+        message:
+          "Interview created successfully",
         data: interview,
       });
+
     } catch (error) {
+      console.error(
+        "CREATE INTERVIEW ERROR:",
+        error
+      );
+
       next(error);
     }
   }
 
+
   /**
    * Get All Interviews
    */
-  async getInterviews(
+  async getAll(
     req: Request,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const userId = req.user!.userId;
+      const userId =
+        (req as any).user.userId;
 
       const interviews =
-        await interviewService.getInterviews(userId);
+        await interviewService.getAll(
+          userId
+        );
 
       return res.status(200).json({
         success: true,
         data: interviews,
       });
+
     } catch (error) {
       next(error);
     }
   }
+
 
   /**
    * Get Interview By ID
    */
-  async getInterviewById(
+  async getById(
     req: Request,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const id = req.params.id as string;
+      const userId =
+        (req as any).user.userId;
+
+      const { id } = req.params;
+
+      if (typeof id !== "string") {
+        throw new Error(
+          "Invalid interview ID"
+        );
+      }
 
       const interview =
-        await interviewService.getInterviewById(
-          id,
-          req.user!.userId
+        await interviewService.getById(
+          userId,
+          id
         );
 
       return res.status(200).json({
         success: true,
         data: interview,
       });
+
     } catch (error) {
       next(error);
     }
   }
+
 
   /**
    * Update Interview
    */
-  async updateInterview(
+  async update(
     req: Request,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const id = req.params.id as string;
+      const userId =
+        (req as any).user.userId;
+
+      const { id } = req.params;
+
+      if (typeof id !== "string") {
+        throw new Error(
+          "Invalid interview ID"
+        );
+      }
+
+      console.log(
+        "UPDATE INTERVIEW BODY:",
+        req.body
+      );
 
       const data =
-        updateInterviewSchema.parse(req.body);
+        updateInterviewSchema.parse(
+          req.body
+        );
+
+      console.log(
+        "VALIDATED UPDATE DATA:",
+        data
+      );
 
       const interview =
-        await interviewService.updateInterview(
+        await interviewService.update(
+          userId,
           id,
-          req.user!.userId,
-          data
+          data as any
         );
 
       return res.status(200).json({
         success: true,
-        message: "Interview updated successfully",
+        message:
+          "Interview updated successfully",
         data: interview,
       });
+
     } catch (error) {
+      console.error(
+        "UPDATE INTERVIEW ERROR:",
+        error
+      );
+
       next(error);
     }
   }
 
+
   /**
    * Delete Interview
    */
-  async deleteInterview(
+  async delete(
     req: Request,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const id = req.params.id as string;
+      const userId =
+        (req as any).user.userId;
 
-      const result =
-        await interviewService.deleteInterview(
-          id,
-          req.user!.userId
+      const { id } = req.params;
+
+      if (typeof id !== "string") {
+        throw new Error(
+          "Invalid interview ID"
         );
+      }
+
+      await interviewService.delete(
+        userId,
+        id
+      );
 
       return res.status(200).json({
         success: true,
-        ...result,
+        message:
+          "Interview deleted successfully",
       });
+
     } catch (error) {
       next(error);
     }

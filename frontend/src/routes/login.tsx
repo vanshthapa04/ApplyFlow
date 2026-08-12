@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import authService from "@/services/auth.service";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — ApplyFlow" }] }),
@@ -17,6 +19,7 @@ export const Route = createFileRoute("/login")({
 type LoginForm = { email: string; password: string; remember: boolean };
 
 function LoginPage() {
+  const auth = useAuth();
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
     defaultValues: { email: "arjun.sharma@applyflow.io", password: "", remember: true },
@@ -72,7 +75,26 @@ function LoginPage() {
 
           <Card className="mt-6 rounded-2xl border-border/70 shadow-sm">
             <CardContent className="p-6">
-              <form className="space-y-4" onSubmit={handleSubmit(() => navigate({ to: "/" }))}>
+              <form className="space-y-4" onSubmit={handleSubmit(async (data) => {
+  try {
+    const response = await authService.login({
+      email: data.email,
+      password: data.password,
+    });
+
+    await auth.login(
+      response.data.data.token
+    );
+    console.log("Stored token:", localStorage.getItem("token"));
+
+    navigate({
+      to: "/",
+    });
+  } catch (error) {
+    console.error(error);
+    alert("Invalid email or password");
+  }
+})}>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input id="email" type="email" placeholder="you@company.com" className="h-11 rounded-xl"
