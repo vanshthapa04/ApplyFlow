@@ -1,6 +1,12 @@
 import { CalendarDays } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 import { InterviewStatusBadge } from "@/components/shared/StatusBadge";
 
 interface Interview {
@@ -9,7 +15,11 @@ interface Interview {
   role: string;
   interview_date: string;
   interview_type: string;
-  status: "Scheduled" | "Completed" | "Cancelled" | "Rescheduled";
+  status:
+    | "Scheduled"
+    | "Completed"
+    | "Cancelled"
+    | "Rescheduled";
 }
 
 interface UpcomingInterviewsProps {
@@ -20,9 +30,11 @@ export function UpcomingInterviews({
   interviews,
 }: UpcomingInterviewsProps) {
   return (
-    <Card className="rounded-2xl border-border/70 shadow-sm">
+    <Card className="rounded-2xl border-border/70 bg-card text-card-foreground shadow-sm dark:border-slate-800">
       <CardHeader>
-        <CardTitle>Upcoming Interviews</CardTitle>
+        <CardTitle className="text-foreground">
+          Upcoming Interviews
+        </CardTitle>
       </CardHeader>
 
       <CardContent>
@@ -30,7 +42,7 @@ export function UpcomingInterviews({
           <div className="flex flex-col items-center justify-center py-10 text-center">
             <CalendarDays className="mb-3 h-10 w-10 text-muted-foreground" />
 
-            <p className="font-medium">
+            <p className="font-medium text-foreground">
               No upcoming interviews
             </p>
 
@@ -43,11 +55,11 @@ export function UpcomingInterviews({
             {interviews.map((interview) => (
               <div
                 key={interview.id}
-                className="rounded-xl border p-4 hover:bg-muted/30 transition-colors"
+                className="rounded-xl border border-border bg-background p-4 transition-colors hover:bg-muted/30 dark:border-slate-800"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium">
+                    <h3 className="font-medium text-foreground">
                       {interview.role}
                     </h3>
 

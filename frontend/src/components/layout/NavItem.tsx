@@ -22,6 +22,7 @@ export default function NavItem({
         items-center
         gap-3
         rounded-2xl
+        border
         px-4
         py-3
         text-sm
@@ -31,8 +32,8 @@ export default function NavItem({
 
         ${
           isActive
-            ? "bg-blue-50 text-blue-700 border border-blue-100"
-            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            ? "border-blue-100 bg-blue-50 text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-400"
+            : "border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
         }
       `
       }
@@ -41,12 +42,18 @@ export default function NavItem({
         <>
           <div
             className={`
-              flex h-9 w-9 items-center justify-center rounded-xl transition-all
+              flex
+              h-9
+              w-9
+              items-center
+              justify-center
+              rounded-xl
+              transition-all
 
               ${
                 isActive
                   ? "bg-blue-600 text-white shadow-md"
-                  : "bg-slate-100 text-slate-500 group-hover:bg-white"
+                  : "bg-slate-100 text-slate-500 group-hover:bg-white dark:bg-slate-800 dark:text-slate-400 dark:group-hover:bg-slate-700 dark:group-hover:text-slate-200"
               }
             `}
           >
